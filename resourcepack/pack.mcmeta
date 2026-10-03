@@ -1,0 +1,13 @@
+{
+  "pack": {
+    "description": [
+      { "text": "GirlSMP", "color": "#F5ABE4" },
+      { "text": " Server Pack", "color": "#D677C3" },
+      "\n",
+      { "text": "Required • ", "color": "#a6adc8" },
+      { "text": "v${version}", "color": "#6c7086" }
+    ],
+    "min_format": 97,
+    "max_format": 97
+  }
+}

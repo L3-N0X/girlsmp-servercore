@@ -1,0 +1,87 @@
+# Builds the resource pack in resourcepack/ and publishes it as a GitHub release "pack-v<version>".
+#
+# The zip is also committed into the release tag (an orphan commit that only contains the zip, so main
+# stays free of build output). That's what makes it available on the jsDelivr CDN:
+#   https://cdn.jsdelivr.net/gh/<owner>/<repo>@pack-v<version>/girlsmp-resourcepack.zip
+# The server mod (ResourcePackModule) finds the newest pack-v* release through the GitHub API and reads
+# the SHA-1 from the release notes.
+name: Resource pack
+
+on:
+  push:
+    branches: [main]
+    paths: ['resourcepack/**']
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version (e.g. 1.2.0). Empty = bump the patch version of the last release.'
+        required: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: resourcepack
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Determine version
+        id: version
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+        run: |
+          if [ -n "$INPUT_VERSION" ]; then
+            version="$INPUT_VERSION"
+          else
+            last=$(git tag --list 'pack-v*' --sort=-v:refname | head -n1)
+            if [ -z "$last" ]; then
+              version=1.0.0
+            else
+              IFS=. read -r major minor patch <<< "${last#pack-v}"
+              version="$major.$minor.$((patch + 1))"
+            fi
+          fi
+          [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "Invalid version '$version'" >&2; exit 1; }
+          git rev-parse -q --verify "refs/tags/pack-v$version" >/dev/null && { echo "pack-v$version already exists" >&2; exit 1; }
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "tag=pack-v$version" >> "$GITHUB_OUTPUT"
+
+      - name: Build
+        id: build
+        run: |
+          resourcepack/build.sh "${{ steps.version.outputs.version }}"
+          echo "sha1=$(sha1sum build/resourcepack/girlsmp-resourcepack.zip | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
+
+      - name: Tag (orphan commit with the zip, for jsDelivr)
+        env:
+          TAG: ${{ steps.version.outputs.tag }}
+          GIT_AUTHOR_NAME: github-actions[bot]
+          GIT_AUTHOR_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
+          GIT_COMMITTER_NAME: github-actions[bot]
+          GIT_COMMITTER_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
+        run: |
+          blob=$(git hash-object -w build/resourcepack/girlsmp-resourcepack.zip)
+          tree=$(printf '100644 blob %s\tgirlsmp-resourcepack.zip\n' "$blob" | git mktree)
+          commit=$(git commit-tree "$tree" -m "Resource pack ${TAG#pack-v} (built from $GITHUB_SHA)")
+          git tag "$TAG" "$commit"
+          git push origin "refs/tags/$TAG"
+
+      - name: Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.version.outputs.tag }}
+          VERSION: ${{ steps.version.outputs.version }}
+          SHA1: ${{ steps.build.outputs.sha1 }}
+        run: |
+          notes=$(printf 'SHA-1: %s\nBuilt from %s.\n\nCDN: https://cdn.jsdelivr.net/gh/%s@%s/girlsmp-resourcepack.zip\n' \
+            "$SHA1" "$GITHUB_SHA" "$GITHUB_REPOSITORY" "$TAG")
+          # --latest=false: keeps "Latest release" free for mod releases.
+          gh release create "$TAG" build/resourcepack/girlsmp-resourcepack.zip \
+            --title "Resource pack $VERSION" --notes "$notes" --latest=false

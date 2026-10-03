@@ -1,0 +1,12 @@
+{
+  "providers": [
+    { "advances": { " ": 4.5 }, "type": "space" },
+    {
+      "file": "girlsmp:mccaps.ttf",
+      "oversample": 4,
+      "shift": [0.0, -9],
+      "size": 6,
+      "type": "ttf"
+    }
+  ]
+}

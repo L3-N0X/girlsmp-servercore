@@ -1,0 +1,31 @@
+{
+	"schemaVersion": 1,
+	"id": "${mod_id}",
+	"version": "${version}",
+	"name": "Server Core",
+	"description": "Server-side custom content for the server (tab list, bossbar, ...).",
+	"authors": [
+		"L3-N0X"
+	],
+	"license": "All-Rights-Reserved",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			{
+				"value": "de.lenox.servercore.ServerCore",
+				"adapter": "kotlin"
+			}
+		]
+	},
+	"mixins": [
+		"servercore.mixins.json"
+	],
+	"depends": {
+		"fabricloader": ">=0.19.5",
+		"minecraft": "~26.3",
+		"java": ">=25",
+		"fabric-api": "*",
+		"fabric-language-kotlin": "*",
+		"adventure-platform-fabric": "*"
+	}
+}

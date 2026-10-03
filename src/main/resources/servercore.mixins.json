@@ -1,0 +1,11 @@
+{
+	"required": true,
+	"package": "de.lenox.servercore.mixin",
+	"compatibilityLevel": "JAVA_25",
+	"mixins": [
+		"ServerScoreboardMixin"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	}
+}
