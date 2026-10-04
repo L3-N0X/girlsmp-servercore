@@ -1,0 +1,40 @@
+{
+  "providers": [
+    {
+      "type": "bitmap",
+      "file": "girlsmp:font/sprite/banner_0.png",
+      "ascent": 24,
+      "height": 24,
+      "chars": [
+        "\ue900"
+      ]
+    },
+    {
+      "type": "bitmap",
+      "file": "girlsmp:font/sprite/banner_1.png",
+      "ascent": 24,
+      "height": 24,
+      "chars": [
+        "\ue901"
+      ]
+    },
+    {
+      "type": "bitmap",
+      "file": "girlsmp:font/sprite/banner_2.png",
+      "ascent": 24,
+      "height": 24,
+      "chars": [
+        "\ue902"
+      ]
+    },
+    {
+      "type": "bitmap",
+      "file": "girlsmp:font/sprite/banner_3.png",
+      "ascent": 24,
+      "height": 24,
+      "chars": [
+        "\ue903"
+      ]
+    }
+  ]
+}
