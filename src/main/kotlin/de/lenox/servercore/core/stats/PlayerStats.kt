@@ -14,6 +14,9 @@ data class PlayerStats(
 	val name: String = "",
 	val playtimeSeconds: Long = 0,
 	val joins: Int = 0,
+	val deaths: Int = 0,
+	/** Totems of undying that saved the player from dying. */
+	val totemPops: Int = 0,
 	@Serializable(InstantSerializer::class)
 	val firstJoin: Instant? = null,
 	@Serializable(InstantSerializer::class)

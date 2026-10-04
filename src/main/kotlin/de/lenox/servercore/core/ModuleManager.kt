@@ -2,10 +2,12 @@ package de.lenox.servercore.core
 
 import de.lenox.servercore.ServerCore
 import de.lenox.servercore.core.storage.Storage
+import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents
 import net.minecraft.server.MinecraftServer
+import net.minecraft.server.level.ServerPlayer
 
 /**
  * Wires Fabric API events once and fans them out to all registered [ServerModule]s.
@@ -43,6 +45,9 @@ object ModuleManager {
 		}
 		ServerPlayConnectionEvents.DISCONNECT.register { handler, _ ->
 			modules.forEach { it.onPlayerLeave(handler.player) }
+		}
+		ServerLivingEntityEvents.AFTER_DEATH.register { entity, source ->
+			if (entity is ServerPlayer) modules.forEach { it.onPlayerDeath(entity, source) }
 		}
 	}
 }

@@ -10,6 +10,7 @@ object Commands {
 		CommandRegistrationCallback.EVENT.register { dispatcher, _, _ ->
 			StatsCommand.register(dispatcher)
 			ResourcePackCommand.register(dispatcher)
+			VanishCommand.register(dispatcher)
 		}
 	}
 }

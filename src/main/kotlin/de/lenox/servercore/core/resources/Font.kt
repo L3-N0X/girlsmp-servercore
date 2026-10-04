@@ -29,6 +29,9 @@ object Font {
 	/** Small caps TTF, shifted up by 9 px (a second line above normal text). */
 	val SHIFT_UP = Key.key("girlsmp:shift_up")
 
+	/** Images (banner, icons, ...), use them through [Sprite]. */
+	val SPRITE = Key.key("girlsmp:sprite")
+
 	/** Negative/positive spaces, see `Cmp.space`. */
 	val SPACE = Key.key("space:default")
 

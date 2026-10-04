@@ -12,6 +12,7 @@ import de.lenox.servercore.core.stats.formatDuration
 import de.lenox.servercore.core.storage.Storage
 import de.lenox.servercore.core.utils.components.Cmp
 import de.lenox.servercore.core.utils.components.Theme
+import de.lenox.servercore.core.vanish.VanishModule
 import kotlinx.coroutines.launch
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.event.ClickEvent
@@ -30,8 +31,9 @@ import java.time.format.DateTimeFormatter
 import java.util.UUID
 
 /**
- * - `/stats [player]`: playtime, joins, first join and last seen of yourself or any player (also offline)
- * - `/stats top <playtime|joins>`: top 10 players
+ * - `/stats [player]`: playtime, joins, deaths, totem pops, first join and last seen of yourself or any player
+ *   (also offline)
+ * - `/stats top <playtime|joins|deaths|totems>`: top 10 players
  * - `/stats toggle`: hide or show your sidebar
  * - `/stats reload`: re-read the JSON files after editing them by hand (gamemasters only)
  */
@@ -54,6 +56,8 @@ object StatsCommand {
 	) {
 		PLAYTIME("playtime", "Playtime", Theme.LIGHT_AQUA, PlayerStats::playtimeSeconds, { formatDuration(it, withSeconds = false) }),
 		JOINS("joins", "Joins", Theme.LIGHT_MINT, { it.joins.toLong() }, Long::toString),
+		DEATHS("deaths", "Deaths", Theme.LIGHT_RED, { it.deaths.toLong() }, Long::toString),
+		TOTEMS("totems", "Totem Pops", Theme.LIGHT_YELLOW, { it.totemPops.toLong() }, Long::toString),
 	}
 
 	fun register(dispatcher: CommandDispatcher<CommandSourceStack>) {
@@ -165,6 +169,8 @@ object StatsCommand {
 			header("Stats", stats.name),
 			line("Playtime", Cmp(formatDuration(stats.playtimeSeconds), Theme.LIGHT_AQUA)),
 			line("Joins", Cmp(stats.joins.toString(), Theme.LIGHT_MINT)),
+			line("Deaths", Cmp(stats.deaths.toString(), Theme.LIGHT_RED)),
+			line("Totem pops", Cmp(stats.totemPops.toString(), Theme.LIGHT_YELLOW)),
 			line("First join", date(stats.firstJoin)),
 			line("Last seen", if (online) Cmp("● online now", Theme.BRIGHT_GREEN) else date(stats.lastSeen)),
 		)
@@ -195,7 +201,9 @@ object StatsCommand {
 
 	private fun error(message: String): Component = error(Cmp(message, Theme.LIGHT_RED))
 
-	private fun isOnline(source: CommandSourceStack, uuid: UUID) = source.server.playerList.getPlayer(uuid) != null
+	/** Vanished players count as offline for everyone who can't see them. */
+	private fun isOnline(source: CommandSourceStack, uuid: UUID) =
+		source.server.playerList.getPlayer(uuid)?.let { VanishModule.canSee(source, it) } ?: false
 
 	/** Runs [block] off the server thread and reports failures to the command source. */
 	private fun async(source: CommandSourceStack, block: suspend () -> Unit) {

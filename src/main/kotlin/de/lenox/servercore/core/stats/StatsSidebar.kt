@@ -4,18 +4,21 @@ import de.lenox.servercore.core.resources.Font
 import de.lenox.servercore.core.scoreboard.ScoreboardProvider
 import de.lenox.servercore.core.utils.components.Cmp
 import de.lenox.servercore.core.utils.components.Theme
+import de.lenox.servercore.core.vanish.VanishModule
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.TextColor
 import net.kyori.adventure.text.format.TextDecoration
 import net.minecraft.server.level.ServerPlayer
 
-/** Default sidebar: the player's own playtime and joins plus the online count. */
+/** Default sidebar: the player's own playtime, joins, deaths and totem pops plus the online count. */
 object StatsSidebar : ScoreboardProvider {
 	private val title = Cmp("GirlSMP", Theme.LIGHT_PINK, Theme.LIGHT_PURPLE, Font.CAPS).decorate(TextDecoration.BOLD)
 	private val lines = listOf(
 		Component.empty(),
 		label("Playtime"),
 		label("Joins"),
+		label("Deaths"),
+		label("Totems"),
 		label("Online"),
 		Component.empty(),
 	)
@@ -30,7 +33,9 @@ object StatsSidebar : ScoreboardProvider {
 			null,
 			value(stats?.let { formatDuration(it.playtimeSeconds, withSeconds = false) }, Theme.LIGHT_AQUA),
 			value(stats?.joins?.toString(), Theme.LIGHT_MINT),
-			value(player.level().server.playerList.playerCount.toString(), Theme.LIGHT_GOLD),
+			value(stats?.deaths?.toString(), Theme.LIGHT_RED),
+			value(stats?.totemPops?.toString(), Theme.LIGHT_YELLOW),
+			value(VanishModule.visiblePlayers(player).size.toString(), Theme.LIGHT_GOLD),
 			null,
 		)
 	}

@@ -8,17 +8,21 @@ import net.minecraft.world.scores.ScoreHolder
 import net.minecraft.world.scores.criteria.ObjectiveCriteria
 
 /**
- * Mirrors [PlayerStats] into two vanilla scoreboard objectives, so they can be shown with
+ * Mirrors [PlayerStats] into vanilla scoreboard objectives, so they can be shown with
  * `/scoreboard objectives setdisplay sidebar playtime` or used in command blocks / datapacks.
  *
  * - `playtime`: minutes played (rendered as e.g. `12h 5m`)
  * - `joins`: number of joins
+ * - `deaths`: number of deaths
+ * - `totem_pops`: totems of undying used up
  *
  * The JSON files are the source of truth; the scoreboard is overwritten from them.
  */
 object StatsScoreboard {
 	const val PLAYTIME = "playtime"
 	const val JOINS = "joins"
+	const val DEATHS = "deaths"
+	const val TOTEM_POPS = "totem_pops"
 
 	fun update(server: MinecraftServer, stats: PlayerStats) {
 		if (stats.name.isEmpty()) return
@@ -31,13 +35,15 @@ object StatsScoreboard {
 			numberFormatOverride(FixedFormat(Component.literal(formatDuration(minutes * 60L, withSeconds = false))))
 		}
 		scoreboard.getOrCreatePlayerScore(holder, objective(server, JOINS, "Joins")).set(stats.joins)
+		scoreboard.getOrCreatePlayerScore(holder, objective(server, DEATHS, "Deaths")).set(stats.deaths)
+		scoreboard.getOrCreatePlayerScore(holder, objective(server, TOTEM_POPS, "Totem Pops")).set(stats.totemPops)
 	}
 
 	/** Removes the scores of a name, e.g. after the player renamed themselves. */
 	fun remove(server: MinecraftServer, name: String) {
 		val holder = ScoreHolder.forNameOnly(name)
 		val scoreboard = server.scoreboard
-		listOf(PLAYTIME, JOINS).forEach { id ->
+		listOf(PLAYTIME, JOINS, DEATHS, TOTEM_POPS).forEach { id ->
 			scoreboard.getObjective(id)?.let { scoreboard.resetSinglePlayerScore(holder, it) }
 		}
 	}

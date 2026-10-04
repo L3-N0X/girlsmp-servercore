@@ -1,0 +1,127 @@
+{
+  "providers": [
+    {
+      "type": "space",
+      "advances": {
+        "\uf801": -1
+      }
+    },
+    {
+      "type": "bitmap",
+      "file": "girlsmp:font/sprite/banner_0.png",
+      "ascent": 16,
+      "height": 16,
+      "chars": [
+        "\ue000"
+      ]
+    },
+    {
+      "type": "bitmap",
+      "file": "girlsmp:font/sprite/banner_1.png",
+      "ascent": 16,
+      "height": 16,
+      "chars": [
+        "\ue001"
+      ]
+    },
+    {
+      "type": "bitmap",
+      "file": "girlsmp:font/sprite/banner_2.png",
+      "ascent": 16,
+      "height": 16,
+      "chars": [
+        "\ue002"
+      ]
+    },
+    {
+      "type": "bitmap",
+      "file": "girlsmp:font/sprite/banner_3.png",
+      "ascent": 16,
+      "height": 16,
+      "chars": [
+        "\ue003"
+      ]
+    },
+    {
+      "type": "bitmap",
+      "file": "girlsmp:font/sprite/banner_0.png",
+      "ascent": 32,
+      "height": 32,
+      "chars": [
+        "\ue004"
+      ]
+    },
+    {
+      "type": "bitmap",
+      "file": "girlsmp:font/sprite/banner_1.png",
+      "ascent": 32,
+      "height": 32,
+      "chars": [
+        "\ue005"
+      ]
+    },
+    {
+      "type": "bitmap",
+      "file": "girlsmp:font/sprite/banner_2.png",
+      "ascent": 32,
+      "height": 32,
+      "chars": [
+        "\ue006"
+      ]
+    },
+    {
+      "type": "bitmap",
+      "file": "girlsmp:font/sprite/banner_3.png",
+      "ascent": 32,
+      "height": 32,
+      "chars": [
+        "\ue007"
+      ]
+    },
+    {
+      "type": "bitmap",
+      "file": "girlsmp:font/sprite/banner_0.png",
+      "ascent": 48,
+      "height": 48,
+      "chars": [
+        "\ue008"
+      ]
+    },
+    {
+      "type": "bitmap",
+      "file": "girlsmp:font/sprite/banner_1.png",
+      "ascent": 48,
+      "height": 48,
+      "chars": [
+        "\ue009"
+      ]
+    },
+    {
+      "type": "bitmap",
+      "file": "girlsmp:font/sprite/banner_2.png",
+      "ascent": 48,
+      "height": 48,
+      "chars": [
+        "\ue00a"
+      ]
+    },
+    {
+      "type": "bitmap",
+      "file": "girlsmp:font/sprite/banner_3.png",
+      "ascent": 48,
+      "height": 48,
+      "chars": [
+        "\ue00b"
+      ]
+    },
+    {
+      "type": "bitmap",
+      "file": "girlsmp:font/sprite/skull.png",
+      "ascent": 7,
+      "height": 8,
+      "chars": [
+        "\ue00c"
+      ]
+    }
+  ]
+}

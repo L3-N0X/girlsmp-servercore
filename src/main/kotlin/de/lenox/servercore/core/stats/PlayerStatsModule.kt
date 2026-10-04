@@ -8,15 +8,17 @@ import de.lenox.servercore.core.storage.Storage
 import kotlinx.coroutines.launch
 import net.minecraft.server.MinecraftServer
 import net.minecraft.server.level.ServerPlayer
+import net.minecraft.world.damagesource.DamageSource
 import java.time.Instant
 import java.util.UUID
 
 /**
- * Tracks playtime and joins per player.
+ * Tracks playtime, joins, deaths and totem pops per player.
  *
- * Only online players are kept in memory; their stats are saved on leave, every [AUTOSAVE_TICKS] and on
- * shutdown. Offline players are always read from disk, so their files can be edited by hand at any
- * time. Hand edits to an online player's file are overwritten unless `/stats reload` is run first.
+ * Only online players are kept in memory; their stats are saved on leave, every [AUTOSAVE_TICKS], on
+ * shutdown and right after a death or totem pop. Offline players are always read from disk, so their files
+ * can be edited by hand at any time. Hand edits to an online player's file are overwritten unless
+ * `/stats reload` is run first.
  *
  * Everything here runs on the server thread; disk access is done by [store] in the background.
  */
@@ -34,9 +36,15 @@ object PlayerStatsModule : ServerModule {
 		/** Wall clock time up to which playtime has been added to [stats]. */
 		var accountedUntil = System.nanoTime()
 		var dirty = false
+
+		/** Playtime minutes last written to the scoreboard. */
+		var scoreboardMinutes = stats.playtimeSeconds / 60
 	}
 
 	private val sessions = HashMap<UUID, Session>()
+
+	/** Deaths and totem pops of players whose stats are still loading, applied once their session starts. */
+	private val pending = HashMap<UUID, MutableList<(PlayerStats) -> PlayerStats>>()
 
 	private data class KnownPlayer(val name: String, val uuid: UUID)
 
@@ -61,9 +69,14 @@ object PlayerStatsModule : ServerModule {
 		ticks++
 		if (ticks % ACCOUNT_TICKS == 0L) {
 			sessions.values.forEach { session ->
-				val minutesBefore = session.stats.playtimeSeconds / 60
 				account(session)
-				if (session.stats.playtimeSeconds / 60 != minutesBefore) StatsScoreboard.update(server, session.stats)
+				// Compared with the last written value, not before/after: online() accounts too (every tick for
+				// the sidebar and tab list), so the minute usually changes outside of this loop.
+				val minutes = session.stats.playtimeSeconds / 60
+				if (minutes != session.scoreboardMinutes) {
+					session.scoreboardMinutes = minutes
+					StatsScoreboard.update(server, session.stats)
+				}
 			}
 		}
 		if (ticks % AUTOSAVE_TICKS == 0L) {
@@ -92,8 +105,17 @@ object PlayerStatsModule : ServerModule {
 				}
 				knownPlayers[name.lowercase()] = KnownPlayer(name, uuid)
 				// The player may have left (or left and rejoined) while the file was loading.
-				if (server.playerList.getPlayer(uuid) === player) sessions[uuid] = Session(stats)
-				StatsScoreboard.update(server, stats)
+				if (server.playerList.getPlayer(uuid) === player) {
+					val session = Session(stats)
+					pending.remove(uuid)?.let { changes ->
+						session.stats = changes.fold(session.stats) { current, change -> change(current) }
+						save(uuid, session)
+					}
+					sessions[uuid] = session
+					StatsScoreboard.update(server, session.stats)
+				} else {
+					StatsScoreboard.update(server, stats)
+				}
 			}
 		}
 	}
@@ -103,6 +125,16 @@ object PlayerStatsModule : ServerModule {
 		account(session)
 		session.stats = session.stats.copy(lastSeen = Instant.now())
 		save(player.uuid, session)
+	}
+
+	override fun onPlayerDeath(player: ServerPlayer, source: DamageSource) {
+		record(player) { it.copy(deaths = it.deaths + 1) }
+	}
+
+	/** Called (by a mixin) when a totem of undying saves [player] from dying. */
+	@JvmStatic
+	fun onTotemPop(player: ServerPlayer) {
+		record(player) { it.copy(totemPops = it.totemPops + 1) }
 	}
 
 	/** Current stats of an online player, including the time played up to now. Server thread only. */
@@ -135,6 +167,7 @@ object PlayerStatsModule : ServerModule {
 				session.stats = fromDisk
 				session.accountedUntil = System.nanoTime()
 				session.dirty = false
+				session.scoreboardMinutes = fromDisk.playtimeSeconds / 60
 				StatsScoreboard.update(server, fromDisk)
 			}
 		}
@@ -157,6 +190,21 @@ object PlayerStatsModule : ServerModule {
 			ServerCore.logger.info("Loaded stats of {} players", stored.size)
 		}
 		return stored
+	}
+
+	/**
+	 * Applies [change] to an online player's stats and saves them right away (these events are rare, unlike
+	 * playtime). If their file is still loading, the change waits in [pending] until their next session starts.
+	 */
+	private fun record(player: ServerPlayer, change: (PlayerStats) -> PlayerStats) {
+		val session = sessions[player.uuid]
+		if (session == null) {
+			pending.getOrPut(player.uuid, ::mutableListOf) += change
+			return
+		}
+		session.stats = change(session.stats)
+		save(player.uuid, session)
+		StatsScoreboard.update(player.level().server, session.stats)
 	}
 
 	/** Adds the whole seconds played since the last call to the session's playtime. */
