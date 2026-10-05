@@ -107,7 +107,8 @@ src/main/kotlin/de/lenox/servercore/
 │   ├── Commands.kt            # Brigadier command registration
 │   ├── StatsCommand.kt        # /stats [player], /stats top, /stats toggle, /stats reload
 │   ├── ResourcePackCommand.kt # /resourcepack [reload]
-│   └── VanishCommand.kt       # /vanish
+│   ├── VanishCommand.kt       # /vanish
+│   └── InvseeCommand.kt       # /invsee <player>
 └── core/
     ├── ServerModule.kt        # Module interface: lifecycle, tick, join/leave hooks
     ├── ModuleManager.kt       # Hooks Fabric API events and dispatches them to modules
@@ -120,6 +121,7 @@ src/main/kotlin/de/lenox/servercore/
     ├── scoreboard/            # Packet-only sidebar: Sidebar, ScoreboardModule, ScoreboardProvider
     ├── stats/                 # Playtime, joins, deaths, totem pops; vanilla objectives, StatsSidebar
     ├── tablist/               # Packet tab list header/footer/scores: TabListModule, TabListScores, ServerTabList
+    ├── invsee/                # InvseeMenu: the chest GUI of /invsee
     ├── vanish/                # VanishModule: hidden operators (the vanilla hooks are mixins)
     └── bossbar/BossBarModule.kt   # (stub) per-player bossbars
 src/main/java/de/lenox/servercore/mixin/   # Mixins (Java): ServerScoreboardMixin, LivingEntityMixin (totem pops), vanish hooks
@@ -335,6 +337,28 @@ every game mode, and stays vanished across rejoins and restarts (`servercore/van
 | Command | Permission | |
 |---|---|---|
 | `/vanish` | op (level 2) | Vanish, or become visible again |
+
+### Invsee
+
+`/invsee <player>` (op, level 2) opens the inventory of an **online** player as a 6 row chest GUI, laid out like the
+vanilla inventory screen:
+
+```
+ ▪  head  chest  legs  feet  ▪  offhand  body  saddle
+    main inventory (3 rows)
+ ▪  ▪  ▪  ▪  ▪  ▪  ▪  ▪  ▪
+    hotbar
+```
+
+- It's live and editable: both sides see changes right away. Armor, offhand, body armor and saddle slots take any
+  item, like `/item replace`. Shift click moves items between the two inventories, into the target's main inventory
+  or hotbar only.
+- `▪` fillers can't be taken or filled. The GUI closes if the player leaves, dies or changes dimension.
+- Offline players aren't supported, their data is only read from disk on join.
+
+| Command | Permission | |
+|---|---|---|
+| `/invsee <player>` | op (level 2) | Open a player's inventory |
 
 ### Notes
 

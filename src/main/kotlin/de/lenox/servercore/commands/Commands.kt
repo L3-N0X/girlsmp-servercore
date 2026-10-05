@@ -11,6 +11,7 @@ object Commands {
 			StatsCommand.register(dispatcher)
 			ResourcePackCommand.register(dispatcher)
 			VanishCommand.register(dispatcher)
+			InvseeCommand.register(dispatcher)
 		}
 	}
 }
