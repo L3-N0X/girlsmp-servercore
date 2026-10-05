@@ -255,6 +255,14 @@ code points (`tiles(first, count)` for tiled images).
 `resourcepack/` is the server resource pack (the Eventrox fonts, renamed to the `girlsmp`
 namespace, the space and pixelized fonts and the [sprites](#sprites)). Every player gets it automatically when joining.
 
+**Pause menu artwork:** the title of the pause menu (`menu.game`, the line above "Back to Game") is overridden
+with the banner, like Eventrox does with its logo. `assets/minecraft/lang/{en_us,de_de}.json` hold the string:
+the 4 banner tiles (`U+E900..E903`, defined in `assets/minecraft/font/girlsmp/menu.json`, referenced from
+`minecraft/font/default.json`, 24 px high) joined by `U+CFFFF`, a -1 px space of the `space` font, so the tiles
+touch. Vanilla's own `de_de` string would win over `en_us`, which is why both files exist; add a language file
+with the same `menu.game` entry for any other language you need. The tiles reuse `banner_0..3.png`, so
+replacing the banner with `split_sprite.py` updates the pause menu too.
+
 **Publishing:** push changes under `resourcepack/` to `main`. The *Resource pack* workflow builds the zip
 (`resourcepack/build.sh`), bumps the patch version (or uses the version you enter when starting it by hand under
 *Actions*) and creates the release `pack-v<version>` with the SHA-1 in its notes. The zip is also committed into
